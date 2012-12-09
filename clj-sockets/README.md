@@ -9,7 +9,7 @@ I use two libraries:
 
 ## Usage
 
-### Version 1
+### Version 1 - my wrapper around Java socket objects
 
 The code for my tiny socket library is in `src/thoryndev/clj_sockets.clj` and its use is shown in the `thornydev.sockets.echo_threaded.clj` file.
 
@@ -52,6 +52,7 @@ REPL #2
     # etc.
 
 
+----
 
 ### Version 2 using the server-socket library
 
@@ -60,12 +61,13 @@ There is currently no documentation for this library (and what little you can fi
 I demonstrate how to use two of its four public methods: `create-server` and `close-server`.
 
 `create-server` spawns a new thread and calls the handler function you provide it.  The `close-server` function closes all four resources that get created:
+
 1. The input stream (which is passed to your handler fn)
 2. The output stream (also passed to your handler fn)
 3. The Socket object (created via the .accept method)
 4. The ServerSocket
 
-When you call `create-server`, you get back a struct that wraps the SocketServer object and a Ref of its connections:
+When you call `create-server` you get back a struct that wraps the Java SocketServer object and a Ref of its connections:
 
     user=> (require 'thornydev.sockets.echo-server)
     nil
@@ -81,7 +83,9 @@ When you call `create-server`, you get back a struct that wraps the SocketServer
     thornydev.sockets.echo-server=> @(:connections sock)
     #{}
     
-You pass this struct to the `close-server` when you are done.  However, since `create-server` puts the socket server its own thread, I've had to use a CountDownLatch to wait upon in the main thread to detect when the server has closed down in order to call `close-server` and release those 4 resources.
+You pass this struct to the `close-server` function when you are done.  However, since `create-server` puts the socket server its own thread, I use a [CountDownLatch](http://docs.oracle.com/javase/7/docs/api/java/util/concurrent/CountDownLatch.html) to wait upon in the main thread to detect when the server has closed down. Once the CountDownLatch at 0, I can then `close-server` and release those 4 resources created.
+
+The files needed to exercise the server-socket library are `echo_client.clj` and `echo_server.clj`. `main.clj` is provided in order to allow you to run it from one place as shown below.
 
 
 #### Three ways to run it:
@@ -107,12 +111,12 @@ You pass this struct to the `close-server` when you are done.  However, since `c
 
 **Option 3:** Run with lein trampoline
 
-   # in console 1
-   $ lein trampoline run server
+    # in console 1
+    $ lein trampoline run server
 
-   # in console 2
-   $ lein trampoline run client
-   # ... same routine as above ...
+    # in console 2
+    $ lein trampoline run client
+    # ... same routine as above ...
 
 
 ## License

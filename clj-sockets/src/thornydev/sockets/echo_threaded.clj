@@ -9,7 +9,7 @@
 
 (def latch (CountDownLatch. 1))
 
-(def port 8002)
+(def port 8000)
 
 (defn echo-server []
   ;; since socket-accept blocks until the client connects
